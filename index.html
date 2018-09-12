@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base href="<%=basePath%>">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>全国监测信息展示系统</title>
+    <style>
+        @import url(css/font-awesome.min.css);
+        @import url(Cesium/Widgets/widgets.css);
+        @import url(css/index.css);
+    </style>
+</head>
+
+<body>
+    <div id="cesiumContainer"></div>
+
+    <script src='js/jquery-2.0.3.min.js'></script>
+	<script src="Cesium/Cesium.js"></script>
+	<script src="js/CesiumVectorTile.min.js"></script>
+	<script src="js/viewerCesiumNavigationMixin.js"></script>
+	<script src="js/cesium-crane.js"></script>
+    <script>
+        //设置Cesium的Token，在官网注册账号获取，有部分功能需要token
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYTFhNTgxNC1lODRhLTQwMDYtOWU0OS1iZjljOWE0OTEzNTMiLCJpZCI6MzE1MywiaWF0IjoxNTM2MTk4MzkyfQ.bPNtjWByTUqPyPno3fWTNaq2nbYmvkm-j_ZykKXfTNI';
+
+        var viewer, dataSource;
+        //创建地球，并把天地图的图层覆盖
+        viewer = new Cesium.Viewer('cesiumContainer', {
+            animation: false, //是否显示动画控件
+            baseLayerPicker: false, //是否显示图层选择控件
+            geocoder: true, //是否显示地名查找控件
+            timeline: false, //是否显示时间线控件
+            sceneModePicker: false, //是否显示投影方式控件
+            navigationHelpButton: false, //是否显示帮助信息控件
+            infoBox: false, //是否显示点击要素之后显示的信息
+            fullscreenButton: true, //是否显示右下角全屏按钮
+            scene3DOnly: true,
+            selectionIndicator: false,
+            vrButton: true, //VR按钮
+            imageryProvider: new Cesium.WebMapTileServiceImageryProvider({
+                url: "http://t0.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles",
+                layer: "tdtBasicLayer",
+                style: "default",
+                format: "image/jpeg",
+                tileMatrixSetID: "GoogleMapsCompatible",
+                show: false,
+                requestWaterMask: true, //加入水
+                requestVertexNormals: true //加入阳光
+            })
+        });
+        //覆盖天地图中文地点标示
+        viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({
+            url: "http://t0.tianditu.com/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg",
+            layer: "tdtAnnoLayer",
+            style: "default",
+            format: "image/jpeg",
+            tileMatrixSetID: "GoogleMapsCompatible",
+            show: false
+        }));
+        //设置初始化视野
+        viewer.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(117.16, 45.71, 15000000.0)
+        });
+        //初始化Cranegis第三方插件
+        var cranegis = new Cranegis();
+        //绘制边界线
+        cranegis.drawBorderLine("国界线", "data/china");
+        //加载扩展插件，地图导航控件、比例尺、放大缩小
+        cranegis.loadMapViewTools(["enableCompass", "enableZoomControls", "enableDistanceLegend", "enableCompassOuterRing"]);
+        //鼠标经过的经纬度，海拔高度和视角高度、、 传入divid， 自定义
+        cranegis.show3DCoordinates("craneBar");
+        //加载Marker数据点
+        var markerOption = {
+            jsonDataUrl: "json/marker.json", //这里替换坐标点数据源
+            iconUrl: "img/mine.png"
+        };
+        cranegis.loadCraneMarker(markerOption);
+        //自定义按钮,点击跳转到首页
+        cranegis.userButton({
+            svgIcon: '<svg t="1536194687822" class="icon" style="" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1043" xmlns:xlink="http://www.w3.org/1999/xlink" width="26" height="26"><defs><style type="text/css"></style></defs><path d="M944.788937 99.145068H79.892585c-8.138354 0-14.736633 6.598278-14.736633 14.736632v574.831001c0 8.138354 6.598278 14.736633 14.736633 14.736632h413.789211v163.692153h-206.523657c-14.989389 0-27.140127 12.151761-27.140127 27.140127 0 14.989389 12.151761 27.14115 27.140127 27.14115h446.972984c14.989389 0 27.14115-12.151761 27.14115-27.14115s-12.151761-27.140127-27.14115-27.140127H530.151405V703.449333h414.637532c8.138354 0 14.736633-6.598278 14.736633-14.736632V113.8817c0-8.138354-6.598278-14.736633-14.736633-14.736632z m-65.200978 517.368264H145.093563c-14.989389 0-27.140127-12.151761-27.140127-27.140127 0-14.989389 12.151761-27.14115 27.140127-27.14115h734.494396c14.989389 0 27.140127 12.151761 27.140127 27.14115s-12.150738 27.140127-27.140127 27.140127z" p-id="1044" fill="#ffffff"></path></svg>',
+            locationUrl: "http://baidu.com",
+            title: "点击进入系统平台"
+        });
+        //隐藏无用显示
+        viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK); //取消坐标点的双击效果
+        viewer.cesiumWidget.creditContainer.style.display = "none"; //去掉cesium水印logo
+    </script>
+</body>
+
+</html>
