@@ -11,6 +11,8 @@ Cesium 进行了二次封装，详细的注释， 展Cesium地球的魅力
 6. 实时显示鼠标经过经纬度和视角高度、海拔高度
 7. 加入VR模式
 8. 加入自定义右上角菜单功能
+9. 中国国界线
+10. 坐标点聚合
 
 ### 预览
 
@@ -18,6 +20,6 @@ Cesium 进行了二次封装，详细的注释， 展Cesium地球的魅力
 
 ### 预览图
 
-![地球预览]()
+![地球预览](https://github.com/andotorg/cesium-html5/blob/master/zong.jpg)
 
-![气泡弹窗]()
+![气泡弹窗](https://github.com/andotorg/cesium-html5/blob/master/marker.jpg)
